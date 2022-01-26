@@ -21,7 +21,9 @@ Bundler.require(*Rails.groups)
 
 module ReactRailsApiProjectTemplate
   class Application < Rails::Application
-    # Adding cookies and session middleware
+    
+    config.load_defaults 6.1
+# Adding cookies and session middleware
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use ActionDispatch::Session::CookieStore
 
@@ -30,8 +32,6 @@ module ReactRailsApiProjectTemplate
     config.action_dispatch.cookies_same_site_protection = :strict
 
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 6.1
-
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files

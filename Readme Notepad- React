@@ -1,0 +1,246 @@
+import { element } from "prop-types";
+
+// RENDER JSON DATA ON DOM
+PARENT COMP: 
+  1. Set state:
+      const [transactions, setTransactions] = useState([]); & include {useState, useEffect} hook
+  2. Use Fetch structure 
+      useEffect(() => {
+        fetch("http://localhost:6001/listings")
+        .then((response) => response.json())
+        .then((data) => {
+          console.log(data);
+          setListings(data);
+      });
+  }, []);
+  3. Pass the props to the respective child
+      transactions = {transactions}
+CHILD COMP:
+  1. Wrap props in curly brackets in child header
+      function TransactionsList({ transactions, setTransactions}) {
+  2. Map state in return section
+      {transactions.map((transaction) => {
+        return (
+          <Transaction 
+            key = {transaction.id} 
+//** must always use "key" to identify the ID variable **
+            transaction = {transaction}/>
+//** alternatively, list all keys instead of "transactions" **
+GRANDKID COMP:
+  1. Wrap JSON data keys in {} in each element in return section 
+  2. Wrap props in curly braces in Grandkid header
+      
+    function Transaction({transaction}) {
+      const {id, date, description, category, amount} = transaction
+// must always include the "ID" in props 
+    return (
+      <tr>
+        <td>{date}</td>
+        <td>{description}</td>
+        <td>{category}</td>
+        <td>{amount}</td>
+      </tr>
+    );
+  }
+
+
+//ENABLE ADDING NEW OBJECT (IN FORMS)
+PARENT COMP:
+  1. Create a new function to add new item to state
+      function handleNewTransaction(newTransaction) {
+        setTransactions([...transactions, newTransaction])
+      }
+  2. Pass the function name as a prop to the child component in return section of the parent
+      return (
+        <div>
+          <AddTransactionForm 
+            transactions = {transactions} 
+            setTransactions   = {setTransactions} 
+            handleNewTransaction = {handleNewTransaction}/>
+        </div>
+      )
+CHILD COMP:
+  1. Add State and useEffect hook 
+  2. Pass the function callback from Parent into child header wrapped in {}
+      import React, {useState, useEffect} from "react";
+
+      function AddTransactionForm({handleNewTransaction}) {
+  3. Create state for each key listed in JSON data. These will reference the new user input 
+      function AddTransactionForm({handleNewTransaction}) {
+        const [date, setDate] = useState(" ")
+        const [description, setDescription] = useState(" ")
+        const [category, setCategory] = useState (" ")
+        const [amount, setAmount] = useState (0)
+  4. Create function for each key state to indicate what the user is inputting 
+      function handleNewDate (event) {
+        setDate(event.target.value)
+      }
+      function handleNewDescription (event) {
+        setDescription(event.target.value)
+      }
+      function handleNewCategory (event) {
+        setCategory(event.target.value)
+      }
+      function handleNewAmount (event) {
+        setAmount(event.target.value)
+      }
+  5. Wrap POST method in new function  
+//** always include "e.preventDefault()" on forms
+      function handleSubmit(e) {
+        e.preventDefault()
+          fetch("http://localhost:8001/transactions", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+              date, 
+              description, 
+              category,
+              amount
+            })
+          })
+        .then(res => res.json())
+        .then(newTransaction => {
+          handleNewTransaction(newTransaction)
+//** Line 106 & 107 is translating the new (user input) data and updating the "newTransaction" to fire the "handleNewTransaction" from parent
+        })
+  6.  In return section, "these are mandatory for forms":
+        - "onSubmit ={POST function name}"
+        - "onChange = {function name created to access the user input fields}".
+        - "value = {key}"
+        return (
+          <div className="ui segment">
+            <form className="ui form" onSubmit = {handleSubmit}>
+              <div className="inline fields">
+                <input type="date" name="date" onChange = {handleNewDate} value = {date}/>
+                <input type="text" name="description" placeholder="Description" onChange = {handleNewDescription} value = {description}/>
+                <input type="text" name="category" placeholder="Category" onChange = {handleNewCategory} value = {category}/>
+                <input type="number" name="amount" placeholder="Amount" step="0.01" onChange = {handleNewAmount} value = {amount}/>
+              </div>
+              <button className="ui button" type="submit">
+                Add Transaction
+              </button>
+            </form>
+          </div>
+        );
+
+//ENABLES SEARCH BAR TO FILTER
+PARENT COMP:
+  1. Create state for the userInput variable 
+      const [userSearchInput, setUserSearchInput] =useState(" ")
+  2. Create function to filter "userSearchInput" vs "transactions.description"
+      const handleSearch = transactions.filter((transaction) => {
+        return transaction.description.toLowerCase().includes(userSearchInput.toLowerCase());
+      });
+  3. Pass function prop to the child component in return body of the Parent
+      return (
+        <div>
+          <Search setTransactions = {handleSearch} userSearchInput ={userSearchInput} setUserSearchInput = {setUserSearchInput}/>
+        </div>
+      );
+CHILD COMPONENT:
+  1. Pass props wrapped in curly braces {} in Child header
+      function Search({userSearchInput, setUserSearchInput}) {
+  2. Store mandatory events for forms in return section
+        - value = {userSearchInput}
+        - onChange = {(e) => setUserSearchInput(e.target.value)}
+
+//ENABLES DELETING ITEM FROM DOM/JSON DATA    
+PARENT COMP (APP)
+  1. Create a new function to DELETE item from state
+  function handleRemoveCandy(candyGone) {
+    const updatedCandies = candies.filter((candy) => {
+      return candy.id !== candyGone.id
+    })
+    return setCandies(updatedCandies);
+  2. Pass the function name as a prop to the child component in return section of the parent
+      return (
+        <div>
+          <AddTransactionForm 
+            transactions = {transactions} 
+            setTransactions   = {handleSearch} 
+            handleRemoveTransaction = {handleRemoveTransaction}/>
+        </div>
+CHILD COMP:
+  1. Pass props wrapped in curly braces {} in Child header
+      function TransactionContainer({ toys, handleRemoveTransaction }) {
+  2. Pass the props to GrandKid in return section
+      return (
+        <ToyCard
+          key = {toy.id}
+          name = {toy.name}
+          image = {toy.image}
+          likes = {toy.likes}
+          handleRemoveToy= {handleRemoveToy}/>
+      );
+GRANDKID COMP:
+  1. Pass props wrapped in curly braces {} in Grankid header
+      function ToyCard({toys, id, name, image, likes, handleRemoveToy}) {
+  1. Wrap DELETE method in function variable 
+//<!-- DELETE METHOD -->
+      function handleDeleteClick() {
+        fetch(`URL/${id}`, {
+          method: "DELETE",
+        })
+        .then((r) => r.json())
+        .then(() => {
+          handleRemoveTransaction(transaction);
+        });
+      }
+  3. Return function name in an Event that fires the button click
+return (
+  <div>
+    <button className="remove" 
+      onClick={handleDeleteClick}>
+      Delete
+    </button>
+  </div>
+);
+
+//ENABLES UPDATE OF ITEM ON DOM/ JSON DATA
+PARENT COMP:
+CHILD COMP:
+  1. Wrap PATCH method in new function variable
+      function handleAddToCartClick() {
+        fetch(`http://localhost:4000/items/${id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            isInCart: !item.isInCart,
+        }),
+      })
+    .then((r) => r.json())
+    .then((updatedItem) => console.log(updatedItem));
+}
+//ENABLES TOGGLE (LIKED/ FAVORITE/ DARKMODE)
+CHILD COMP:
+//** component where the button lives**//
+  1. Create state for the "item" that will be toggled 
+      function ListingCard() {
+        const [favorited, setFavorited] = useState(false);
+//** the initial state variable is set to a boolean **//
+  2. Create function to set the change state to its own opposite
+      function handleFavoritedClick() {
+        setFavorited(!favorited);
+  3. Create variable to store the Ternary Statement
+      const favoritedClass = favorited ? "active" : "";
+      const favoritedStar = favorited ? "★" : "☆";
+  4. In return section, pass function name and Ternary variables in the toggle element (button)
+      <button className= {
+        "emoji-button favorite " + favoritedClass} 
+        onClick={handleFavoritedClick}>
+        {favoritedStar}
+        </button>
+
+//CLEAR FORM 
+<!-- CLEAR FORM -->
+function clearForm(){
+  setFormState({
+    name="",
+    image="",
+    price=0
+  })
+}
+
+clearForm()

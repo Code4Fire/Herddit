@@ -1,0 +1,173 @@
+<!--- # SETUP MIGRATION, MODEL & SEED FILES --->
+1. TO CREATE ACTIVE RECORD MIGRATION FILE 
+# //Create Migration files
+Run "bundle exec rake db:create_migration NAME=create_artists" in terminal. New file should live in "db" directory
+# //Create table in the migration file 
+def change
+    create_table :companies do |t|
+      t.string :name
+      t.integer :founding_year
+# **Only add below columns when building a table that joins 2 primary tables**
+      t.integer :company_id <---- create foreign key in order to connect with primary table(s)
+      t.integer :dev_id <---- create foreign key in order to connect with primary table(s)
+    end
+
+2. UPDATE MODEL FILES (APP)
+# // Create class and import ActiveRecord and insert Macros
+class Artist < ActiveRecord::Base
+    has_many :freebies 
+    has_many :devs, through: :freebies
+    [belongs_to :company] <--- this macro belongs to the class that is the bridge. Must be singular)
+    end
+
+# **Note: class names = singular; table names = plural**
+3. UPDATE THE SEED FILE 
+# Ensure you include the "".destroy_all" so you don't need to replant to avoid remigratind seed data
+    Painting.destroy_all
+    Artist.destroy_all
+    Museum.destroy_all <-----remember to destroy_all seed classes
+# //in the Seed file, insert below .create line with respective keys
+def random_museum
+    Museum.all[rand(Museum.all.length)]
+  end
+#**// above method creates the rule for random_table 
+
+#!! Ensure you are creating variables for the primary table keys. if using ".id", use for key and value
+Painting.create(title: "Starry Night", price_in_us_dollars: 1000, museum: random_museum, artist: van_gogh)
+british_museum = Museum.create(name: "The British Museum", city: "London")
+# // Instantiate data from the terminal 
+**(if there is no seed file, you will need to create each instance in the terminal)**
+Game.create(title: "Mario Kart", platform: "Switch", genre: "Racing", price: 60)
+
+4. MIGRATE ONCE SETUP IS COMPLETE
+    a. Run command in terminal "bundle exec rake db:migrate" 
+    b. Run command in terminal "bundle exec rake db:seed" <-- run this to run your seed data
+
+5. ENSURE TABLES ARE CREATED
+    1. Check Schema file to ensure the table(s) were created. If not, then use terminal commands--
+    2. Run command in terminal "bundle exec rake db:migrate:status"
+# //if your schema is not correct, run commands below to re-migrate in terminal
+        a. bundle exec rake console
+        b. rake db:drop
+        c. rake db:create
+        d. rake db:migrate
+    or you can use "bundle exec rake db:seed:replant"v <--This command removes the data from all existing tables, and then re-runs the seed file
+
+<!---- # METHODS EXAMPLES ----> 
+#returns a string
+    def full_name
+        "#{self.first_name} #{self.last_name}"
+    end
+#creates a new painting for the artist
+    def add_painting(museum, title, price_in_us_dollars)
+        self.paintings.create(museum: museum, title: title, price_in_us_dollars: price_in_us_dollars)
+    end
+#creates a new painting instance with all the same attributes as the current painting instance.
+    def create_forgery
+        Painting.create(museum: museum, artist: artist, title: title, price_in_us_dollars: price_in_us_dollars)
+    end
+#To Test
+-->Painting.first
+-->a1= Painting.first
+-->a1.create_forgery
+
+#returns average value with float
+    def average_rating
+        self.reviews.average(:star_rating).to_f
+    end
+#returns 1 instance of the highest average value
+    def self.oldest_company
+        Company.all.order(:founding_year).first
+    end
+    def self.fanciest
+    # Museum.all.sort_by {|m| m.average_value}.last
+        Museum.all.max_by {|m| m.average_value}
+    end
+#sums total worth of all of that artist's paintings.
+    def total_value
+    self.paintings.sum(:price_in_us_dollars)
+    end
+#To Test
+-->Artist.first
+-->a1 = Artist.first
+-->a1.total_value
+
+#sort by key
+    def self.sort_by_year
+    self.order(:birthyear)
+    end
+    def self.sort_by_year
+        self.all.sort_by { |a| a.birthyear }
+    end
+#`Artist.sort_by_total_value`
+#uses `sort_by` or `order` to return the artists sorted by the total value of their paintings. Total value was previously defined in another method
+    def self.sort_by_total_value
+        self.all.sort_by {|p| p.total_value}
+    end
+#To Test
+-->Artist.sort_by_total_value
+    
+#`puts` to the terminal a formatted string representing each review for this product   
+    def print_all_reviews
+        self.all.each {|product| puts "Review for #{product.name} by #{user.name}: #{star_rating}. #{comment}"}
+    end
+#updates instance
+    def exhibit_artist(artist)
+        artist.paintings.update(museum_id: self.id)
+    end
+#deletes instance (all)
+    def self.delete_by_id(id)
+        movie = Movie.find(id)
+        movie.destroy
+    end
+#deletes all paintings
+    def heist
+        self.paintings.destroy_all
+    end
+#To Test
+-->Museum.first
+-->m1=_
+-->m1.heist
+-->m1.paintings --> []
+
+# returns true if freebies associated with the dev has that item_name, otherwise returns false  
+def received_one?(item_name)
+    self.freebies.any? do |freebie|
+      freebie.item_name == item_name
+    end
+  end
+# if else statement 
+def get_married(person)
+    if person.is_a?(Person)
+      self.partner = person
+      person.partner = self
+    else
+      raise PartnerError
+    end
+  end
+<!---- # TO ADD ADDITIONAL COLUMNS AFTER MIGRATING ---->
+# //create new migration file (exit console)
+bundle exec rake db:create_migration NAME=add_favorite_food_to_artists
+# //add a new column in the new class
+add_column :artists, :favorite_food, :string
+
+<!---- # TO TEST YOUR TERMINAL ---->
+1. Run command "bundle exec rake console" for the console.
+2. Call the first instance --> "Museum.first"
+3. Assign a variable to the first instance --> m1 = museum.first
+4. Use the variable to call the method --> m1. "method name"
+
+<!----# FAKER --->
+1. go to Github for Faker, choose category. This will give you syntax for the interpolation
+2. go to the "Gemfile" in VSCode and add "gem faker"
+3. In terminal, install the Faker bundle ("bundle install")
+4. In the seeds file, create a default instance line interpoling the Faker data into each key 
+
+<!---# FILE STRUCTURE FOR APP --->
+1. app/models: Our Active Record models. Responsible for code that accesses and updates data in our database using classes that inherit from ActiveRecord::Base.
+2. config: Code in this folder is responsible for our environment setup, like requiring files/gems, and establishing a connection to the database.
+3. db/migrate: Our Active Record migrations. Responsible for creating and altering the structure of the database (making new tables, adding columns to existing tables, etc).
+4. db/seed.rb: Lets us easily add sample data to the database.
+5. spec: Our RSpec tests.
+6. Gemfile: Lists all the gems our application depends on.
+7. Rakefile: Code for common tasks that we can easily run from the command line, like rake console.

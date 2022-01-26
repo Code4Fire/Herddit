@@ -1,0 +1,408 @@
+
+<!--- # CREATES NEW PROJECT --->
+  --> rails new resource-test --skip-javascript -T --api --minimal (exclude api flag)
+
+<!--- # SETUP MIGRATION, CONTROLLER, MODEL FILES --->
+  1. Terminal Command
+    --> rails g resource Student name image (image is string) graduation_year:integer quote:text popular:boolean sum:float instructor:belongs_to
+  ***dont forget the foreign keys for the belong model***
+      
+  [OPTIONAL] b. FOR MODEL & MIGRATION: rails g model Cheese name price:integer is_best_seller:boolean 
+    **spaces signifies line breaks. This creates model and migration table 
+  
+  2. Review your Models to write the relationships
+
+<!--- # SEEDS FILE --->
+  3. Work on Seeds
+    - ensure all instances have "destroy all" macro
+  
+  4. --> rails db:migrate db:seed
+
+  5. Check Schema & "bundle exec rake db:migrate:status"
+
+<!---# DEPENDENTS**--->
+    In Models file, add below to the Macro line of the parent models to destroy all records of the child model if the parent model is destroyed
+        dependent: :destroy or dependent: :nullify
+      
+    class Activity < ApplicationRecord
+      has_many :signups, dependent: :destroy
+      has_many :campers, through: :signups 
+    end
+
+<!---# VALIDATION [APP - MODELS]--->
+      6. In Model 
+    Validation macros create requirements in the login page 
+        class Author < ApplicationRecord
+          validates  :name, presence: true, uniqueness: true
+          validates :phone_number, length: {is: 10}
+          validates :email, :format:/\w+@\w+\.{1}[a-zA-Z]{2,}/
+          validates :age, numericality: {greater_than_or_equal_to: 0, less_than_or_equal_to: 18}
+        end
+        class Post < ApplicationRecord
+          validates  :title, presence: true
+          validates  :category, inclusion: { in: ['Fiction', 'Non-Fiction']}
+          validates :content, length: {minimum:100}
+        end
+<!--- # ROUTE FILE [CONFIG]--->
+Route option [:index, :show, :create, :update, :destroy]
+
+GET	=> "#index"	=> Show all birds
+GET	=> "#show" =>	Show a specific bird
+POST => "#create" =>	Create a new bird
+PATCH or PUT =>	"#update" => Update a specific bird
+DELETE => "#destroy"	=> Delete a specific bird
+
+  7. Build your routes in config/routes.rb (this enables that CRUD actions)
+  **this enables all 5 actions
+      Rails.application.routes.draw do
+      resources :birds
+      end
+            -- or --
+  **this is used for exclusive actions only
+      Rails.application.routes.draw do
+      resources :birds, only: [:index, :show]
+      end
+
+# to create CUSTOM ROUTE for authenticating users (MACRO)
+post "/login", to: "sessions#create"
+get "/me", to: "users#show"
+
+# <!--- # NESTED ROUTES-->
+# **Show all reviews based on doghouse id (http:/localhost:3000/dog_houses/1/reviews)**
+#       Rails.application.routes.draw do
+#         resources :dog_houses, only: [:show] do
+#           # nested resource for reviews
+#           resources :reviews, only: [:show, :index]
+#         end
+#         resources :reviews, only: [:show, :index, :create]
+#       end
+
+<!--- # SERIALIZING ASSOCIATION-->
+Many to Many Relationships
+      1. [OPTIONAL] TO CREATE SERIALIZE FILE IN CLI --> rails g serializer director
+      2. Add relationship to the seralizer files under attributes- 
+
+          # serializers/director_serializer.rb
+        class DirectorSerializer < ActiveModel::Serializer
+          attributes :id, :name, :birthplace, :female_director
+
+          has_many :movies
+        end
+        ** this will show movies created by the director (localhost:3000/directors/:id)
+      3. Add relationship to the other Model- 
+          # serializers/movie_serializer.rb
+        class MovieSerializer < ActiveModel::Serializer
+          attributes :id, :title, :year, :length, :description, :poster_url, :category, :discount
+      
+          belongs_to :director
+        end
+
+
+  [OPTIONAL] If you create custom actions, you need to add paths to your routes:
+    patch "/birds/:id/like", to: "birds#increment_likes"
+    get '/dog_houses/:dog_house_id/reviews', to: 'dog_houses#reviews_index'
+    get '/dog_houses/:dog_house_id/reviews/:id', to: 'dog_houses#review'
+    get '/dog_houses/:dog_house_id/reviews/:review_id', to: 'dog_houses#review'
+    
+<!--- # EXCEPTION CLASS/ ERROR HANDLING --->
+  8. In the Application Controller, add the global key and action method to access the "Rescue" action
+      class ApplicationController < ActionController::API
+      rescue_from ActiveRecord::RecordNotFound, with: :record_not_found_response
+      rescue_from ActiveRecord::RecordInvalid, with: :render_unprocessable_entity_response
+      
+      private
+
+      def record_not_found_response
+        render json: error.message, status: :not_found
+      end
+      def render_unprocessable_entity_response(invalid)
+      render json: { errors: invalid.record.errors.full_messages }, status: :unprocessable_entity
+      end
+  **Rescue cannot be used on find_by actions**
+
+<!--- # CONTROLLER FILE [APP]--->
+  [OPTIONAL] Create controller file (IF DID NOT USE RESOURCE COMMAND)
+    --> rails g controller Birds --no-test-framework
+    --> Add the CRUD action (review below)
+ 
+  **In Controllers- add Actions
+      ONLY CREATE & UPDATE ACTIONS NEEDS BANGS(!)
+  
+  9. Add "Private" to set STRONG params 
+      private
+  
+        def author_params
+          params.permit(:email, :name)
+        end
+        def find_activity
+          Activity.find(params[:id])
+        end 
+      end
+  10. Add ACTIONS:
+# GET /birds
+def index
+  instructors = Instructor.all
+  render json: instructors, status: :ok
+end
+
+# <!--- # Index action with Nested Routing-->
+# **Show all reviews based on doghouse id (http:/localhost:3000/dog_houses/1/reviews)**
+# ** Action belongs in Parent model (Doghouse Model)
+# def index
+#   if params[:dog_house_id]
+#     dog_house = DogHouse.find(params[:dog_house_id])
+#     reviews = dog_house.reviews
+#   else
+#     reviews = Review.all
+#   end
+#   render json: reviews, include: :dog_house
+# end
+
+# GET /birds/:id [READ]
+def show
+  instructor = find_instructor
+  render json: instructor, status: :ok
+end
+
+# GET /birds/:id
+  def show
+      bird = Bird.find(id: params[:id])
+      if bird
+      render json: bird
+  else
+      render json: { error: "Bird not found" }, status: :not_found
+      end
+  end
+
+# CREATE action- to verify login
+  class UsersController < ApplicationController
+    def show
+      user = User.find_by(id: session[:user_id])
+      if user
+        render json: user
+      else
+        render json: { error: "Not authorized" }, status: :unauthorized
+      end
+    end
+  end
+
+# POST /birds
+def create
+  bird = Bird.create!(bird_params)
+  render json: bird, status: :created
+end
+
+#POST [IF/ELSE] /bird 
+  def create
+    bird = Bird.create!(bird_params)
+  if bird.valid?
+    render json: bird, status: :created
+  else
+    render json: { errors: bird.errors }, status: :unprocessable_entity
+  end
+end
+
+# CREATE action/birds
+def create
+  author = Author.create!(author_params)
+  render json: author, status: :created <---- creates the 201 status
+rescue ActiveRecord::RecordInvalid => invalid
+  render json: { errors: invalid.record.errors.full_messages }, status: :unprocessable_entity
+end
+
+# CREATE action- AUTHENTICATING USER LOGIN
+class SessionsController < ApplicationController
+  def create
+    user = User.find_by(username: params[:username])
+    session[:user_id] = user.id
+    render json: user, status: :created
+  end
+end
+  
+
+# PATCH /birds/:id
+def update
+  bird = find_bird
+  bird.update!(bird_params)
+  render json: bird, status: :ok
+end
+
+def update
+  bird = Bird.find(params[:id])
+  if bird
+    bird.update(bird_params)
+    render json: bird
+  else
+    render json: { error: "Bird not found" }, status: :not_found
+  end
+end
+
+def update
+  bird = find_bird
+  bird.update!(bird_params)
+  render json: bird
+rescue ActiveRecord::RecordNotFound => error
+  render json: error.message, status: :not_found
+rescue ActiveRecord::RecordInvalid => invalid
+  render json: { errors: invalid.record.errors.full_messages }, status: :unprocessable_entity
+end
+
+# DELETE /birds/:id
+def destroy
+  bird = Bird.find(params[:id])
+  bird.destroy
+  head :no_content or render json:{}
+end
+
+def destroy
+  bird = Bird.find(id: params[:id])
+  if bird
+    Bird.destroy
+    render json:{}
+  else
+    render json: { error: "Bird not found" }, status: :not_found
+  end
+
+7.--> rails s to start server
+
+<!---# AUTHENTICATING USER PROCESS --->
+# Gemfile:
+gem 'bcrypt'
+
+#  app/models/user.rb
+class User < ApplicationRecord
+  has_secure_password  <---scrambles the user name & applies salt (adds 28 characters)
+end
+
+#  DB/migrate/...create_users.rb
+create_table :users do |t|
+  t.string :username
+  t.string :password_digest
+  t.timestamps
+end
+
+# Custom Routes- these paths are based on frontend urls (post, fetch, delete, etc)
+post "/login", to: "sessions#create"
+delete "/logout", to: "sessions#destroy"
+
+post "/signup", to: "users#create"
+get "/me", to: "users#show"
+
+# app/controllers/users_controller.rb
+class UsersController < ApplicationController
+  def create
+    user = User.create(user_params)
+    if user.valid?
+      render json: user, status: :created
+    else
+      render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
+  private
+
+  def user_params
+    params.permit(:username, :password, :password_confirmation)
+  end
+end
+
+# app/controllers/sessions_controller.rb
+class SessionsController < ApplicationController
+  def create
+    user = User.find_by(username: params[:username])
+    if user&.authenticate(params[:password])
+      session[:user_id] = user.id
+      render json: user, status: :created
+    else
+      render json: { error: "Invalid username or password" }, status: :unauthorized
+    end
+  end
+end
+
+def destroy
+  session.delete :user_id
+  head :no_content
+end
+
+<!--- AUTHORIZE  in CONTROLLER --->
+def show
+  # below line is a "guard clause"; this line is added to each action method. This can be refactored as a Macro
+  return render json: { error: "Not authorized" }, status: :unauthorized unless session.include? :user_id
+  document = Document.find(params[:id])
+  render json: document
+end
+  # ... refactored as ...
+    class DocumentsController < ApplicationController
+      before_action :authorize
+
+  private
+
+  def authorize
+    return render json: { error: "Not authorized" }, status: :unauthorized unless session.include? :user_id
+  end
+
+  # ... if you want to exclude a specific action method from including the authorize action ...
+    class DocumentsController < ApplicationController
+      before_action :authorize
+      skip_before_action :authorize, only: [:index]
+    end
+
+# FRONTEND
+***create state***
+function SignUp({ onLogin }) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    fetch("/signup", {      
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username,
+        password,
+        password_confirmation: passwordConfirmation,
+      }),
+    })
+      .then((r) => r.json())
+      .then(onLogin);
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <label htmlFor="username">Username:</label>
+      <input
+        type="text"
+        id="username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+      />
+      <label htmlFor="password">Password:</label>
+      <input
+        type="password"
+        id="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <label htmlFor="password_confirmation">Confirm Password:</label>
+      <input
+        type="password"
+        id="password_confirmation"
+        value={passwordConfirmation}
+        onChange={(e) => setPasswordConfirmation(e.target.value)}
+      />
+      <button type="submit">Submit</button>
+    </form>
+  );
+}
+To reload all new data (in terminal)
+  -->reload!
+For default image, add the default image to the model tables 
+
+    
+
+
+
