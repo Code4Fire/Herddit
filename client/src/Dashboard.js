@@ -57,7 +57,8 @@ function Dashboard({ user, setUser, expiryTime, setExpiryTime, isValidSession })
 // console.log(isValidSession())
   if (user) {
     return (
-    <React.Fragment>
+      <header className= "img-dashboard">
+ 
     <Navbar handleLogoutClick = {handleLogoutClick} user={user}/>
       <h1> Welcome, {user.email}!</h1>
     
@@ -65,7 +66,6 @@ function Dashboard({ user, setUser, expiryTime, setExpiryTime, isValidSession })
 
       <Redirect to = "/SpotifyDashboard"/>
     
-
       ) : (
         <div className="login">
           <Header />
@@ -77,7 +77,8 @@ function Dashboard({ user, setUser, expiryTime, setExpiryTime, isValidSession })
           </Button>
         </div>
           )}
-    </React.Fragment>
+
+    </header>
     ) 
   } else {
     return null

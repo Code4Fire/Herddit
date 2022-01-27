@@ -3,10 +3,11 @@ import {Card, Input, Grid, Comment} from 'semantic-ui-react';
 import Button from '@mui/material/Button';
 import SendIcon from '@mui/icons-material/Send';
 
-function ReviewForm ({ user, album, id , reviews, setReviews, handleNewReview, handleRemoveReview }) {
+function ReviewForm ({ user, album, reviews, handleNewReview, handleRemoveReview }) {
     const [username, setUsername]= useState("")
     const [comment, setComment] = useState("")
     const [date, setDate] = useState("")
+    console.log("first", reviews)
 // console.log(user)
     function handleUserChange(event){
         setUsername(event.target.value)
@@ -54,18 +55,19 @@ function ReviewForm ({ user, album, id , reviews, setReviews, handleNewReview, h
             handleRemoveReview(reviewid);
         });
       }
+      console.log("second", reviews)
 
     // console.log("hello", reviews)
     return (
         <Grid.Column>
             <Card centered >
                 <Card.Content>
-                    <Card.Header>{username}...is typing</Card.Header>
 
-                    <Card.Description>{date}</Card.Description>
                     <Comment.Group>
                         <Comment>
                             <Comment.Avatar src='https://as1.ftcdn.net/v2/jpg/01/89/44/46/1000_F_189444626_ErFjW1mpwCCUEdnJ4ZnJfoLTk66Qf5Tj.jpg' />
+                    <Card.Header>{username}</Card.Header>
+                    <Card.Description>{date}</Card.Description>
                             <Comment.Content>
                                 {reviews.map((review) => {
                                     return (

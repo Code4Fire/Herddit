@@ -25,6 +25,15 @@ class PodcastsController < ApplicationController
         head :no_content
     end
 
+    def reviews
+        album = Album.find_by(name:params[:name])
+        if album 
+            render json: album.reviews, status: :ok
+        else 
+            render json: []
+        end
+    end 
+
 private
 
     def find_podcast

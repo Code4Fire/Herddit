@@ -193,4 +193,8 @@ code {
     justify-content: space-between;
     display: inline-block;
   }
+.img-dashboard {
+      /* background-image: url("./Images/signupimage.jpg"); */
+      background: black !important;
+  }
 }
