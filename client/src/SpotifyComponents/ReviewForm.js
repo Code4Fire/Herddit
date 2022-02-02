@@ -18,14 +18,15 @@ function ReviewForm ({ user, album, reviews, handleNewReview, handleRemoveReview
     function handleDateChange(event){
         setDate(event.target.value)
     }
-    const resetData = (e) => {
-        e.preventDefault()
-        setUsername("")
-        setComment("")
-        setDate("")
-        };
+    // const resetData = (e) => {
+    //     e.preventDefault()
+    //     setUsername("")
+    //     setComment("")
+    //     setDate("")
+    //     };
     function handleAddNewReview(e) {
         e.preventDefault()
+        console.log(album)
         // e.target.reset()
           fetch("/reviews", {
             method: "POST",
@@ -62,7 +63,6 @@ function ReviewForm ({ user, album, reviews, handleNewReview, handleRemoveReview
         <Grid.Column>
             <Card centered >
                 <Card.Content>
-
                     <Comment.Group>
                         <Comment>
                             <Comment.Avatar src='https://as1.ftcdn.net/v2/jpg/01/89/44/46/1000_F_189444626_ErFjW1mpwCCUEdnJ4ZnJfoLTk66Qf5Tj.jpg' />

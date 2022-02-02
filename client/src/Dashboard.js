@@ -58,7 +58,7 @@ function Dashboard({ user, setUser, expiryTime, setExpiryTime, isValidSession })
   if (user) {
     return (
       <header className= "img-dashboard">
- 
+        
     <Navbar handleLogoutClick = {handleLogoutClick} user={user}/>
       <h1> Welcome, {user.email}!</h1>
     

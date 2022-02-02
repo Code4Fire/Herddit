@@ -6,7 +6,7 @@ import {Button } from 'semantic-ui-react';
 import ReviewForm from './ReviewForm'
 
 function ArtistsCard ({user, artist}) {
-    const [reviews, setReviews] = useState("");
+    const [reviews, setReviews] = useState([]);
     const [showReviews, setShowReviews] = useState(false);
 
   //Adding new reviews to backend
@@ -18,13 +18,15 @@ function ArtistsCard ({user, artist}) {
   }
 
   useEffect(() => {
+    console.log(artist.name)
       if(showReviews){
     fetch(`http://localhost:3000/albums/${artist.name}/reviews`)
       .then((response) => response.json())
       .then((data) => {
-      // console.log(data);
+      
       setReviews(data);
       })
+  
     };
     }, [showReviews]);
 

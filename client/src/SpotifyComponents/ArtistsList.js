@@ -6,7 +6,7 @@ import {Button } from 'semantic-ui-react';
 import ArtistsCard from './ArtistsCard'
 
 const ArtistsList = ({ artists, user }) => {
-  const [reviews, setReviews] = useState("");
+  const [reviews, setReviews] = useState([]);
   const [showReviews, setShowReviews] = useState(false);
 
   //Adding new reviews to backend
@@ -26,11 +26,11 @@ const ArtistsList = ({ artists, user }) => {
       });
     }, []);
 
-    function handleRemoveReview(id) {
-      const updatedReviews = reviews.filter((review) => review.id !== id);
+    // function handleRemoveReview(id) {
+    //   const updatedReviews = reviews.filter((review) => review.id !== id);
       
-      setReviews(updatedReviews);
-    }
+    //   setReviews(updatedReviews);
+    // }
 
   return (
     <React.Fragment>

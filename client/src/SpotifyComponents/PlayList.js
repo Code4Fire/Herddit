@@ -6,7 +6,7 @@ import {Button } from 'semantic-ui-react';
 import PlayListCard from './PlayListCard'
 
 const PlayList = ({ playlist, user }) => {
-  const [reviews, setReviews] = useState("");
+  const [reviews, setReviews] = useState([]);
   const [showReviews, setShowReviews] = useState(false);
 
   //Adding new reviews to backend

@@ -174,6 +174,16 @@ code {
   overflow: auto;
 }
 
+.LogoTitle {
+  font-family: 'Indie Flower', cursive;
+  font-size: 7em;
+
+}
+.img-dashboard {
+  /* background-image: url("./Images/signupimage.jpg"); */
+  /* opacity: .33; */
+  /* background: black ; */
+}
 @media screen and (max-width: 400px) {
   .search-buttons {
     flex-direction: column;
@@ -192,6 +202,7 @@ code {
     align-items: flex-end;
     justify-content: space-between;
     display: inline-block;
+    
   }
 .img-dashboard {
       /* background-image: url("./Images/signupimage.jpg"); */

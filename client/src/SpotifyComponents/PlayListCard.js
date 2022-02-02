@@ -8,6 +8,7 @@ import ReviewForm from './ReviewForm'
 function PlayListCard ({user, playlist, item}) {
     const [reviews, setReviews] = useState([]);
     const [showReviews, setShowReviews] = useState (false)
+    const [albumReviews, setAlbumReviews] = useState([])
 
     //Adding new reviews to backend
     function handleNewReview(newReview) {
@@ -21,10 +22,11 @@ function PlayListCard ({user, playlist, item}) {
 
     useEffect(() => {
         if (showReviews){
-      fetch(`http://localhost:3000/albums/${playlist.name}/reviews`)
+          console.log(item)
+      fetch(`http://localhost:3000/albums/${item.name}/reviews`)
         .then((response) => response.json())
         .then((data) => {
-        // console.log(data);
+        console.log('response', data);
         setReviews(data);
         })
       };
