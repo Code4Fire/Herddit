@@ -4,11 +4,12 @@ import _ from 'lodash';
 import music from '../Images/music.jpeg';
 import {Button } from 'semantic-ui-react';
 import ReviewForm from './ReviewForm'
+import ReactCardFlip from 'react-card-flip';
 
 function AlbumCard ({user, album}) {
     const [reviews, setReviews] = useState([]);
     const [showReviews, setShowReviews] = useState (false)
-
+    const [isFlipped, setIsFlipped] = useState (false)
 //Adding new reviews to backend
     function handleNewReview(newReview) {
     // console.log("this is new review", newReview)
@@ -17,6 +18,10 @@ function AlbumCard ({user, album}) {
 
     function handleReviewBox() {
         setShowReviews((prevShowReviews) => !prevShowReviews);
+    }
+
+    function handleFlipClick() {
+      setIsFlipped((isFlipped) => !isFlipped);
     }
 
   useEffect(() => {
@@ -35,7 +40,8 @@ function handleRemoveReview(id) {
     setReviews(updatedReviews);
   }
 return (
-
+  <ReactCardFlip isFlipped={isFlipped} flipDirection="vertical">
+    <div id = "FrontComponent">
       <Card style={{ width: '18rem' }}>
         <a
           target="_blank"
@@ -60,6 +66,11 @@ return (
               {album.artists.map((artist) => artist.name).join(', ')}
             </small>
           </Card.Text>
+            <button onClick={handleFlipClick}>Click to flip</button>
+        </Card.Body>
+      </Card>
+    </div> 
+    <div id = "BackComponent">
             <div className="new-Review-form">
               {showReviews ? 
                 <ReviewForm 
@@ -77,9 +88,10 @@ return (
                 onClick={handleReviewBox}>
                 {showReviews ? "Close Reviews" : "View Reviews"}
               </Button>
+              <button onClick={handleFlipClick}>Click to flip</button>
             </div>    
-        </Card.Body>
-      </Card>
+    </div>
+  </ReactCardFlip>
 
   );
 
